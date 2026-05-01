@@ -4,7 +4,7 @@ Converting Drawdown solutions into future climate trajectories
 We explore the climate impacts of solutions in the [Explorer](https://drawdown.org/explorer)  using the [FAIR](https://github.com/OMS-NetZero/FAIR) (v2.2.0) simple climate model.
 
 ![Global temperature impacts of implementing the Improve Diets
-solution slowly (blue) vs immediately (orange) ](plots/DRAWDOWN/improve_diets.png)
+solution slowly (blue) vs immediately (orange) ](plots/Drawdown/improve_diets.png)
 It's hard to predict the future, but we allow the user to specify the
 baseline scenario, with a choice between constant emissions or the
 CMIP7 high, medium, or low scenarios.  The model is a ``story
