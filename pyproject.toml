@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "drawdown"
+version = "0.1.0"
+description = "FaIR-based climate impact modeling for Project Drawdown solutions"
+requires-python = ">=3.10"
+dependencies = [
+    "fair==2.2.0",
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "xarray",
+    "requests",
+]
+
+[tool.setuptools.packages.find]
+include = ["drawdown*", "utils*"]
