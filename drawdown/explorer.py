@@ -5,7 +5,6 @@ from fair.interface import initialise
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import xarray as xr
 from pathlib import Path
 _DATA_DIR = Path(__file__).parent.parent / "data"
