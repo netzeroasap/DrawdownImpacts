@@ -10,6 +10,8 @@ dependencies:
   - scipy
   - xarray
   - jupyterlab
+  - ipywidgets
+  - openpyxl
   - pip:
     - gspread==6.2.1
     - google-auth==2.49.2
