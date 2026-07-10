@@ -1,0 +1,72 @@
+solution name,adoption unit,learning_curve_25th_percentile,learning_curve_mean,learning_curve_median,learning_curve_75th_percentile,current_adoption_25th_percentile,current_adoption_mean,current_adoption_median,current_adoption_75th_percentile,adoption_trend_25th_percentile,adoption_trend_mean,adoption_trend_median,adoption_trend_75th_percentile,adoption_ceiling_25th_percentile,adoption_ceiling_mean,adoption_ceiling_median,adoption_ceiling_75th_percentile
+Deploy Alternative Insulation Materials,FU: kg insulation needed for 100m2 with RSI = 1 m2K/W,,,,,9000000.0,13000000.0,14000000.0,17000000.0,500000.0,800000.0,500000.0,1300000.0,,,140000000.0,
+Deploy Alternative Refrigerants low-GWP alternatives,kt high-GWP refrigerant replaced,0.0,,0.0,0.0,440.0,440.0,440.0,440.0,77.0,77.0,77.0,77.0,6900.0,6900.0,6900.0,6900.0
+Deploy Alternative Refrigerants medium-GWP alternatives,kt high-GWP refrigerant replaced,0.0,,0.0,0.0,440.0,440.0,440.0,440.0,77.0,77.0,77.0,77.0,6900.0,6900.0,6900.0,6900.0
+Deploy Clean Cooking,household adopting clean cooking solutions,,,,,,,,,,1200000000.0,,,,,,
+Deploy Distributed Solar PV,MW,30.0,34.0,34.0,38.0,702000.0,708000.0,,715000.0,40300.0,72400.0,54000.0,80800.0,12400000.0,23400000.0,17400000.0,28500000.0
+Deploy Industrial Green Hydrogen,kg hydrogen used as industrial feedstock,,,,,,,130000000.0,,,8100000.0,,,,,50000000000.0,
+Deploy LED Lighting,% lamps LED globally,,,,,,,,,2.85,4.116666667,3.75,5.4,,,,
+Deploy Offshore Wind Turbines,MW,11.875,15.75,15.75,19.625,73000.0,73000.0,,73000.0,3000.0,6000.0,5000.0,7000.0,58000000.0,62000000.0,62000000.0,67000000.0
+Deploy Onshore Wind Turbines,1 MW installed capacity,21.0,28.0,28.0,34.0,940000.0,940000.0,,940000.0,46000.0,62000.0,54000.0,70000.0,7700000.0,28000000.0,12000000.0,32000000.0
+Deploy Silvopasture,enter units here,,,,,,,,,,,,,,,,
+Deploy Utility-Scale Solar PV,MW,30.0,34.0,34.0,38.0,917000.0,918000.0,918000.0,918000.0,64800.0,101000.0,81500.0,99000.0,224000000.0,252000000.0,252000000.0,279000000.0
+Enhance Public Transit,,,,,,,,,,,,,,,,,
+Improve Annual Cropping,enter units here,,,,,,,,,,,,,,,,
+Improve Cement Production,Mt cement,,,,,,,,,,,,,,,,
+Improve Diets,kilograms/yr,,,,,,,,,,,,,,,,
+Improve Landfill Management,Mt CH4 abated,,,,,1.259836917562724,1.641557945041816,1.591,1.9980000000000002,0.052179979518689204,0.3786281788701144,0.21826506229732032,0.5447132616487456,4.5,17.68357223968385,9.274666666666667,34.78
+Improve Nonmotorized Transportation Private bicycle and pedestrian travel,,,,,,,,,,,,,,,,,
+Improve Nonmotorized Transportation Shared bicycle travel,,,,,,,,,,,,,,,,,
+Improve Nonmotorized Transportation TOTAL Nonmotorized travel,,,,,,,,,,,,,,,,,
+Improve Nutrient Management,t avoided excess N applied,,,,,,,,,10448998.0,10448998.0,10448998.0,10448998.0,10448998.0,10448998.0,10448998.0,10448998.0
+Improve Rice Production,ha,,,,,48648504.09,48648504.09,48648504.09,48648504.09,,,,,77529772.89,77529772.89,77529772.89,77529772.89
+Improve Windows & Glass,m2,,,,,14300000000.0,17100000000.0,19900000000.0,22700000000.0,620000000.0,622000000.0,622000000.0,624000000.0,46700000000.0,46700000000.0,46700000000.0,46700000000.0
+Increase Carpooling,,,,,,,,,,,,,,,,,
+Increase Centralized Composting,metric tons of organic waste (t OW),,,,,67000000.0,78000000.0,78000000.0,89000000.0,-1200000.0,-1300000.0,260000.0,4300000.0,1350000000.0,,1350000000.0,1350000000.0
+Increase Recycling,Mt of material waste,,,,,24.0,24.0,27.0,27.0,0.0,0.8,0.0,0.0,94.0,100.0,100.0,110.0
+Manage Coal Mine Methane,Mt CH4 abated,,,0.0,,0.49229390681003593,0.5910394265232976,0.5910394265232976,0.6897849462365593,0.4610215053763443,0.5976702508960576,0.5976702508960576,0.734318996415771,40.298,40.298,40.298,40.298
+Manage Oil & Gas Methane,Mt CH4 abated,,,,,0.0,0.0,0.0,0.0,0.3548387096774186,0.3548387096774186,0.3548387096774186,0.3548387096774186,80.659,80.659,80.659,80.659
+Mobilize Electric Bicycles Private electric bicycles,Electric bicycle adopted,,,,,,,,,,,,,,,,
+Mobilize Electric Bicycles Shared electric bicycles,Electric bicycle adopted,,,,,,,,,,,,,,,,
+Mobilize Electric Cars,pkm switched from conventional to electric vehicle,,,0.23,0.24,28000000.0,,,,14632.064590542099,19046.824414359657,18440.73216174027,20015.748031496063,2650000.0,3557142.8571428573,,28000000.0
+Mobilize Hybrid Cars,,,,,,,,,,,,,,,,,
+Protect Coastal Wetlands Mangroves,one hectare of coastal wetland protected,,,,,2939959.4514000006,2939959.4514000006,2939959.4514000006,2939959.4514000006,,,,,15705564.0,15705564.0,15705564.0,15705564.0
+Protect Coastal Wetlands Salt marshes,one hectare of coastal wetland protected,,,,,1240316.7862999998,1240316.7862999998,1240316.7862999998,1240316.7862999998,,,,,7497467.0,7497467.0,7497467.0,7497467.0
+Protect Coastal Wetlands Seagrasses,one hectare of coastal wetland protected,,,,,3857264.5604000003,3857264.5604000003,3857264.5604000003,3857264.5604000003,,,,,31400221.0,31400221.0,31400221.0,31400221.0
+Protect Coastal Wetlands Global weighted average,one hectare of coastal wetland protected,,,,,8037540.7981,8037540.7981,8037540.7981,8037540.7981,,,,,54603252.0,54603252.0,54603252.0,54603252.0
+Protect Forests Boreal,one hectare of forest protected,,,,,466843000.0,466843000.0,466843000.0,466843000.0,1300546.55,2756122.41,2036694.21,3358474.74,936341000.0,936341000.0,936341000.0,936341000.0
+Protect Forests Temperate,one hectare of forest protected,,,,,159019000.0,159019000.0,159019000.0,159019000.0,1937853.75,2793222.99,2461862.01,3055940.8,441476000.0,441476000.0,441476000.0,441476000.0
+Protect Forests Subtropical,one hectare of forest protected,,,,,111589000.0,111589000.0,111589000.0,111589000.0,481361.36,959522.062,726119.175,1136003.67,322511000.0,322511000.0,322511000.0,322511000.0
+Protect Forests Tropical,one hectare of forest protected,,,,,935924000.0,935924000.0,935924000.0,935924000.0,5365903.24,12475920.9,7658556.15,17800516.9,1669459000.0,1669459000.0,1669459000.0,1669459000.0
+Protect Forests Global weighted average,one hectare of forest protected,,,,,1673375000.0,1673375000.0,1673375000.0,1673375000.0,9085664.9,18984788.36,12883231.55,25350936.11,3369787000.0,3369787000.0,3369787000.0,3369787000.0
+Protect Grasslands and Savannas Boreal,one hectare of grassland protected,,,,,135011000.0,135011000.0,135011000.0,135011000.0,659000.0,2152000.0,1338000.0,3007000.0,533033000.0,533033000.0,533033000.0,533033000.0
+Protect Grasslands and Savannas Temperate,one hectare of grassland protected,,,,,81275000.0,81275000.0,81275000.0,81275000.0,692000.0,1728000.0,1178000.0,1715000.0,723429000.0,723429000.0,723429000.0,723429000.0
+Protect Grasslands and Savannas Subtropical,one hectare of grassland protected,,,,,115694000.0,115694000.0,115694000.0,115694000.0,940000.0,2791000.0,1580000.0,3226000.0,626474000.0,626474000.0,626474000.0,626474000.0
+Protect Grasslands and Savannas Tropical,one hectare of grassland protected,,,,,222589000.0,222589000.0,222589000.0,222589000.0,2628000.0,4711000.0,4044000.0,5774000.0,1008375000.0,1008375000.0,1008375000.0,1008375000.0
+Protect Grasslands and Savannas Global weighted average,one hectare of grassland protected,,,,,554569000.0,554569000.0,554569000.0,554569000.0,4919000.0,11382000.0,8140000.0,13722000.0,2891311000.0,2891311000.0,2891311000.0,2891311000.0
+Protect Peatlands Boreal,one hectare of peatland protected,,,,,54106000.0,54106000.0,54106000.0,54106000.0,239000.0,866000.0,502000.0,887000.0,283622000.0,283622000.0,283622000.0,283622000.0
+Protect Peatlands Temperate,one hectare of peatland protected,,,,,13100000.0,13100000.0,13100000.0,13100000.0,67000.0,231000.0,105000.0,282000.0,26330000.0,26330000.0,26330000.0,26330000.0
+Protect Peatlands Subtropical,one hectare of peatland protected,,,,,2628000.0,2628000.0,2628000.0,2628000.0,4000.0,36000.0,8000.0,36000.0,12241000.0,12241000.0,12241000.0,12241000.0
+Protect Peatlands Tropical,one hectare of peatland protected,,,,,35020000.0,35020000.0,35020000.0,35020000.0,48000.0,837000.0,246000.0,834000.0,102685000.0,102685000.0,102685000.0,102685000.0
+Protect Peatlands Global weighted average,one hectare of peatland protected,,,,,104854000.0,104854000.0,104854000.0,104854000.0,358000.0,1970000.0,861000.0,2039000.0,424878000.0,424878000.0,424878000.0,424878000.0
+"Protect Seaweed Ecosystems Subtidal brown, estimate",one hectare of seaweed ecosystem protected,,,,,35271000.0,35271000.0,35271000.0,35271000.0,395700.0,1012500.0,735800.0,,189634300.0,189634300.0,189634300.0,189634300.0
+"Protect Seaweed Ecosystems Subtidal deep red, estimate",one hectare of seaweed ecosystem protected,,,,,43530600.0,43530600.0,43530600.0,43530600.0,620600.0,1117200.0,969800.0,,243014800.0,243014800.0,243014800.0,243014800.0
+"Protect Seaweed Ecosystems Subtidal brown, 25th percentile",one hectare of seaweed ecosystem protected,,,,,35271000.0,35271000.0,35271000.0,35271000.0,395700.0,1012500.0,735800.0,,189634300.0,189634300.0,189634300.0,189634300.0
+"Protect Seaweed Ecosystems Subtidal red, 25th percentile",one hectare of seaweed ecosystem protected,,,,,43530600.0,43530600.0,43530600.0,43530600.0,620600.0,1117200.0,969800.0,,243014800.0,243014800.0,243014800.0,243014800.0
+"Protect Seaweed Ecosystems Subtidal brown, 75th percentile",one hectare of seaweed ecosystem protected,,,,,35271000.0,35271000.0,35271000.0,35271000.0,395700.0,1012500.0,735800.0,,189634300.0,189634300.0,189634300.0,189634300.0
+"Protect Seaweed Ecosystems Subtidal red, 75th percentile",one hectare of seaweed ecosystem protected,,,,,43530600.0,43530600.0,43530600.0,43530600.0,620600.0,1117200.0,969800.0,,243014800.0,243014800.0,243014800.0,243014800.0
+Protect Seaweed Ecosystems Global weighted average,one hectare of seaweed ecosystem protected,,,,,78801600.0,78801600.0,78801600.0,78801600.0,1016300.0,2129700.0,1705600.0,,432649100.0,432649100.0,432649100.0,432649100.0
+"Protect Seaweed Ecosystems Global weighted average, 25th percentile",one hectare of seaweed ecosystem protected,,,,,78801600.0,78801600.0,78801600.0,78801600.0,1016300.0,2129700.0,1705600.0,,432649100.0,432649100.0,432649100.0,432649100.0
+"Protect Seaweed Ecosystems Global weighted average, 75th percentile",one hectare of seaweed ecosystem protected,,,,,78801600.0,78801600.0,78801600.0,78801600.0,1016300.0,2129700.0,1705600.0,,432649100.0,432649100.0,432649100.0,432649100.0
+Reduce Food Loss & Waste,tonnes of reduced FLW,,,,,0.0,0.0,0.0,0.0,,,,,,,,
+"Restore Forests Boreal, Low-intensity",one hectare of forest under restoration,,,,,,,,,,,,,19400000.0,19400000.0,19400000.0,19400000.0
+"Restore Forests Temperate, Low-intensity",one hectare of forest under restoration,,,,,,,,,,,,,19000000.0,19000000.0,19000000.0,19000000.0
+"Restore Forests Subtropical, Low-intensity",one hectare of forest under restoration,,,,,,,,,,,,,3500000.0,3500000.0,3500000.0,3500000.0
+"Restore Forests Tropical, Low-intensity",one hectare of forest under restoration,,,,,,,,,,,,,54800000.0,54800000.0,54800000.0,54800000.0
+"Restore Forests Boreal, High-intensity",one hectare of forest under restoration,,,,,,,,,,,,,19400000.0,19400000.0,19400000.0,19400000.0
+"Restore Forests Temperate, High-intensity",one hectare of forest under restoration,,,,,,,,,,,,,19000000.0,19000000.0,19000000.0,19000000.0
+"Restore Forests Subtropical, High-intensity",one hectare of forest under restoration,,,,,,,,,,,,,3500000.0,3500000.0,3500000.0,3500000.0
+"Restore Forests Tropical, High-intensity",one hectare of forest under restoration,,,,,,,,,,,,,54800000.0,54800000.0,54800000.0,54800000.0
+Restore Forests Global weighted average (Low-intensity),one hectare of forest under restoration,,,,,,,,,,,,,96800000.0,96800000.0,96800000.0,96800000.0
+Restore Forests Global weighted average (High-intensity),one hectare of forest under restoration,,,,,,,,,,,,,96800000.0,96800000.0,96800000.0,96800000.0
+Use Heat Pumps,installed heat pump system,,,,,,130000000.0,,,12000000.0,15000000.0,17000000.0,18000000.0,,,,
