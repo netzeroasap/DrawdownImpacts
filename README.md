@@ -11,7 +11,7 @@ machine", taking as imput a hypothetical baseline future and then a
 trajectory of emissions avoided per solution.
 
 ## how to reproduce
-1. clone the repository with `git clone https://github.com/netzeroasap.git`
+1. clone the repository with `git clone https://github.com/netzeroasap/DrawdownImpacts.git`
 2. install the environment with `conda env create -f environment.yml`
 3. activate environment `conda activate drawdown`
 4. install this necessary within-repo packages with `pip install -e .`
