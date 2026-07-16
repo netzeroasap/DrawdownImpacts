@@ -19,6 +19,20 @@ def prefix_to_num(p):
            "T":1.e12}
     return pdict[p]
 
+def CEDS_name_to_FAIR(specie,co2source="FFI"):
+    #non-methane VOCs in CEDS are just VOCs in FAIR
+    if specie == "NMVOC":
+        fair_name="VOC"
+    # Fair specifies sulfur emissions
+    elif specie == "SO2":
+        fair_name = "Sulfur"
+    elif specie == "CO2":
+        if co2source in ["AFOLU","FFI"]:
+            fair_name = "CO2 "+co2source
+    else:
+        fair_name=specie
+    return str(fair_name)
+
 def CEDS_to_FAIR(X,specie,co2source="FFI"):
     #non-methane VOCs in CEDS are just VOCs in FAIR
     if specie == "NMVOC":
@@ -166,4 +180,16 @@ def electricity_all_species(ss):
 
         d[specie] = xr.DataArray(total, coords={"time": time_axis})
     return d
-    
+
+def get_global_by_sector(specie):
+    searchstring=f"/*{specie}*global_emissions_by_sector_v*"
+    df=pd.read_csv(glob.glob(str(_CEDS_DIR)+ searchstring)[0])
+    sectors=df.sector.values
+    idx=np.min(np.where([x.find("X")==0 for x in df.columns])[0])
+    starttime=int(df.columns[idx].split("X")[-1])
+    endtime=int(df.columns[-1].split("X")[-1])
+    data=df.iloc[:,idx:].values
+    timeax=np.arange(starttime,endtime+1)
+    coords=dict(sector=sectors,time=timeax)
+    da=xr.DataArray(data=data,coords=coords)
+    return da
