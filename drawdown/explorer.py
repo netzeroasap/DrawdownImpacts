@@ -156,7 +156,7 @@ def get_input(solution,\
 
 def drawdown_model(baseline_scenario, perturbation_dicts, df_configs=None,
                    start=1750, end=2101, lite=False, \
-                   n_lite=10, emissions_year = 2024, random_seed=42, run=True):
+                   n_lite=10, emissions_year = 2024, random_seed=42, run_model=True):
     """
     Build and run a FaIR model instance
 
@@ -263,12 +263,14 @@ def drawdown_model(baseline_scenario, perturbation_dicts, df_configs=None,
     initialise(f.cumulative_emissions, 0)
     initialise(f.airborne_emissions, 0)
     initialise(f.ocean_heat_content_change, 0)
-    
-    f.run()
+    setattr(f,"baseline_scenario",baseline_scenario)
+    if run_model:
+        f.run()
     return f
 
 
-def plot_T_diff(f,baseline_scenario="constant",end_time=2100,scenarios=None):
+def plot_T_diff(f,end_time=2100,scenarios=None):
+    baseline_scenario=f.baseline_scenario
     baseline_T=f.temperature.sel(layer=0,\
                     scenario=baseline_scenario,\
                    timebounds=slice(2020,end_time))
@@ -290,3 +292,207 @@ def plot_T_diff(f,baseline_scenario="constant",end_time=2100,scenarios=None):
     plt.legend()
     plt.xlabel("Year")
     plt.ylabel("Warming avoided (°C)")
+
+def shadeplot(da,dim="config",timedim=None,hdi_prob=.9,color=None,alpha=.5):
+    """
+    Plot the shaded interval
+    """
+    low=(1-hdi_prob)/2
+    med=.5
+    high=1-(1-hdi_prob)/2
+    quantiles=da.quantile([low,med,high],dim=dim)
+    if timedim is None:
+        if len(da.dims)==2:
+            timedim=np.array(da.dims)[np.array(da.dims)!="config"][0]
+        else:
+            raise TypeError("array must be 2d")
+    lowq=quantiles.sel(quantile=low)
+    highq=quantiles.sel(quantile=high)
+    xax=getattr(lowq,timedim).values
+    ax=plt.fill_between(xax,lowq.values,highq.values,alpha=alpha,color=color)
+    return ax
+        
+
+
+def replacement_model(baseline_scenario, 
+                      replacement_dicts, 
+                      df_configs=None,
+                      start=1750, 
+                      end=2101, 
+                      lite=False, 
+                      n_lite=10, 
+                      emissions_year=2024,
+                      random_seed=42, 
+                      run_model=True,
+                     CH4_lifetime_effects=True):
+    """
+    Build and run a FaIR model instance
+
+    Parameters:
+        baseline_scenario: assumed reference scenario
+        perturbation_dicts: dictionary of form d[scenario][specie]=replacement_scenario_name. Replace emissions of [specie] in the baseline_scenario with 
+        df_configs: parameters for the box model parameters 
+        (ocean heat uptake, feedbacks, etc.)
+        defaults to '../data/fair-parameters/calibrated_constrained_parameters_1.4.1.csv'
+        start: start date (keep at 1750 for spinup)
+        end: end date of simulation
+        lite: run a configuration in reduced parameter space (saves memory)
+        n_lite: the number of parameter values to use in lite mode
+ 
+    """
+    # ---get the scenario names from the emissions file---#
+    emissions_file=_DATA_DIR / 'emissions/extensions_1750-2500.csv'
+    df=pd.read_csv(emissions_file)
+    scenarios=np.array(df.scenario.unique())
+    del df
+    df_configs = pd.read_csv(
+        _DATA_DIR / 'fair-parameters/calibrated_constrained_parameters_1.4.1.csv',
+        index_col=0
+    )
+    
+    
+    # ---lite mode: just pick n_lite configurations ---
+    if lite:
+        df_configs = df_configs.sample(n=n_lite, random_state=random_seed)
+    
+    species, properties = read_properties(
+        _DATA_DIR / 'fair-parameters/species_configs_properties_1.4.1.csv'
+    )
+    # --- temporary instance just to load the CSV of high/low emissions ---
+    
+    f_tmp = FAIR()
+    f_tmp.define_time(start, end+1, 1)
+    f_tmp.define_scenarios(scenarios)
+    f_tmp.define_species(species, properties)
+    
+    f_tmp.define_configs(df_configs.index)
+    
+    f_tmp.allocate()
+    f_tmp.fill_from_csv(
+        emissions_file=_DATA_DIR / 'emissions/extensions_1750-2500.csv',
+        forcing_file=_DATA_DIR / 'forcing/volcanic_solar.csv',
+    )
+    timepoints = f_tmp.timepoints
+    timebounds = f_tmp.timebounds
+    if baseline_scenario != "constant":
+        baseline_emissions = f_tmp.emissions.sel(scenario=baseline_scenario).copy()
+        baseline_forcing = f_tmp.forcing.sel(scenario=baseline_scenario).copy()
+    else:
+        high_emissions = f_tmp.emissions.sel(scenario="high-extension").copy()
+        
+        high_forcing = f_tmp.forcing.sel(scenario="high-extension").copy()
+        #### DEFINE CONSTANT EMISSIONS #####
+        emissions_const=high_emissions.sel(timepoints=emissions_year,method="nearest")
+        
+        #step = step_function(timepoints, emissions_year)[:, np.newaxis, np.newaxis]
+        step = np.where(timepoints<emissions_year,0.0,1.0)[:, np.newaxis, np.newaxis]
+        baseline_emissions = (                                                        
+          high_emissions.values * (1 - step) +       # ramps to 0 at 2024
+          emissions_const.values[np.newaxis, :, :] * step  # ramps on at 2024        
+        )
+        
+                                                                                                                                                    
+        forcing_const = high_forcing.sel(timebounds=emissions_year, method="nearest")                                                                
+                                                                                    
+        step_bounds = np.where(timebounds<emissions_year,0.0,1.0 )[:, np.newaxis, np.newaxis] 
+                                                                                    
+        baseline_forcing = (
+          high_forcing.values * (1 - step_bounds) +
+          forcing_const.values[np.newaxis, :, :] * step_bounds
+        )    
+       
+  
+
+        
+  
+    
+    # --- real instance with all scenarios ---
+    f = FAIR()
+    all_scenarios = [baseline_scenario] + list(replacement_dicts.keys())
+    f.define_time(start, end+1, 1)
+    f.define_scenarios(all_scenarios)
+    f.define_species(species, properties)
+    f.ch4_method = 'Thornhill2021'
+    f.define_configs(df_configs.index)
+    f.allocate()
+    f.fill_species_configs(
+        _DATA_DIR / 'fair-parameters/species_configs_properties_1.4.1.csv'
+    )
+    f.override_defaults(
+        _DATA_DIR / 'fair-parameters/calibrated_constrained_parameters_1.4.1.csv'
+    )
+    if not CH4_lifetime_effects:
+        for specie in ["NOx","CO","VOC"]:
+            f.species_configs["ch4_lifetime_chemical_sensitivity"]\
+                .loc[dict(specie=specie)] =0.
+    for s in all_scenarios:
+        f.emissions.loc[dict(scenario=s)] = baseline_emissions
+        f.forcing.loc[dict(scenario=s)] = baseline_forcing
+    
+    for s, replacement in replacement_dicts.items():
+        for specie, replacement_scenario in replacement.items():
+            f.emissions.loc[dict(scenario=s, specie=specie)] = f_tmp.emissions.loc[dict(scenario=replacement_scenario, specie=specie)].copy()
+    
+    initialise(f.concentration, f.species_configs["baseline_concentration"])
+    initialise(f.forcing, 0)
+    initialise(f.temperature, 0)
+    initialise(f.cumulative_emissions, 0)
+    initialise(f.airborne_emissions, 0)
+    initialise(f.ocean_heat_content_change, 0)
+    setattr(f,"baseline_scenario",baseline_scenario)
+    if run_model:
+        f.run()
+    return f
+    
+def get_CMIP7_emissions(scenario,species):
+    emissions_file=_DATA_DIR / 'emissions/extensions_1750-2500.csv'
+    edf=pd.read_csv(emissions_file)
+    
+    
+    if type(species) == type("this"):
+        species=[species]
+    condition = np.logical_and(edf.scenario==scenario , edf.variable.isin(species))
+    subdf=edf[condition]
+   
+    units=subdf.iloc[:,4].values[0]
+    fairspecies=subdf.variable.values
+    years=[float(x) for x in subdf.iloc[:,5:].columns]
+    
+    da=xr.DataArray(subdf.iloc[:,5:].values,coords=dict(specie=fairspecies,timepoints=years),attrs=dict(units=units))
+    del edf
+    return da
+
+def achievable_adoption(solution,bound):
+    """
+    Get low or high range of achievable adoption (scraped from Explorer website)
+
+    Parameters:
+        solution: must be same as on website
+        bound: one of "low" or "high" (case-insensitive)
+    """
+    if bound.lower() == "low":
+        col="Low Achievable Range"
+    else:
+        col="High Achievable Range"
+   
+    adoption_df=pd.read_excel(_DATA_DIR / "explorer-website/drawdown_adoption_ranges.xlsx")
+    return float(adoption_df[adoption_df["Solution"]==solution][col].values[0])
+
+def scenarios_to_emissions(baseline_scenario,scenariodict):
+    """
+    Translate between CMIP7 scenarios and emissions for Drawdown solution model
+    """
+    emissions_file=replacement_model(baseline_scenario,scenariodict,lite=True,n_lite=1,run_model=False)
+
+    perturbation_dicts={}
+    baseline_emissions=emissions_file.emissions.sel(scenario=baseline_scenario)
+    delta_emissions = emissions_file.emissions-baseline_emissions
+    for scenario in delta_emissions.scenario.values:
+        if scenario != baseline_scenario:
+            perturbation_dicts[scenario]={}
+            scen_em=delta_emissions.sel(scenario=scenario).isel(config=0).dropna(dim="specie")
+            pert_species=scen_em.specie[scen_em.sum(dim="timepoints")!=0]
+            for specie in pert_species.values:
+                perturbation_dicts[scenario][specie]=scen_em.sel(specie=specie).values
+    return perturbation_dicts
+           
