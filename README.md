@@ -17,6 +17,7 @@ trajectory of emissions avoided per solution.
 4. install this necessary within-repo packages with `pip install -e .`
 5. run `jupyter lab`
 6. navigate to the `notebooks` directory and run
+
 *`Examples.ipynb`  for  basic examples
 * `TLC.ipynb` for an example of the time/location/cobenefits framework
 * `Aerosols.ipynb` for an example making the case for emergency brakes 
