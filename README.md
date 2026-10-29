@@ -15,11 +15,22 @@ trajectory of emissions avoided per solution.
 2. install the environment with `conda env create -f environment.yml`
 3. activate environment `conda activate drawdown`
 4. install this necessary within-repo packages with `pip install -e .`
-5. run `jupyter lab`
-6. navigate to the `notebooks` directory and run
+5. set up access to the solutions explorer data (below)
+6. run `jupyter lab`
+7. navigate to the `notebooks` directory and run
 
 * `Examples.ipynb` for a basic tutorial
 * `TLC.ipynb` for an example of the time/location/cobenefits framework
 * `Aerosols.ipynb` for an example making the case for emergency brakes 
+* `EmergencyBrakes.ipynb` for how fast solutions act on global temperature, combining deployment, emissions, and atmospheric timescales ([open in Binder](https://mybinder.org/v2/gh/netzeroasap/DrawdownImpacts/HEAD?labpath=notebooks/EmergencyBrakes.ipynb))
+
+## Interface with the solutions explorer
+Reduced emissions per solution are read live from the "Drawdown Climate Reduced Emissions Numbers" Google Sheet, which requires the Project Drawdown service account.
+
+1. Download the `service_account.json` file in the team Drive: https://drive.google.com/drive/folders/1LLlGB6rMVrfTps2TCDwxMb9u4jtbyMiG
+2. Put it in the top level of this repository (it is gitignored), or at `~/.config/gspread/service_account.json`
+3. To work with another spreadsheet, navigate to it in the Google Drive, click "share", and share it with explorer-sheet-access@drawdown-solutions-translator.iam.gserviceaccount.com. Then assign `shname` = the name of that spreadsheet
+
+**DO NOT SHARE THE SERVICE ACCOUNT OUTSIDE PD**
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/netzeroasap/DrawdownImpacts/HEAD?labpath=notebooks/Examples.ipynb)

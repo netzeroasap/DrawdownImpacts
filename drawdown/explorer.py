@@ -1,4 +1,5 @@
 import os
+import re
 from fair import FAIR
 from fair.io import read_properties
 from fair.interface import initialise
@@ -7,7 +8,37 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import xarray as xr
 from pathlib import Path
+from functools import lru_cache
 _DATA_DIR = Path(__file__).parent.parent / "data"
+
+## Reduced emissions per adoption unit live in the "Drawdown Climate Reduced
+## Emissions Numbers" Google Sheet, read via the PD service account (see README)
+REDUCED_EMISSIONS_SHEET_KEY = "10TxDO4DeNPRRTTaGix13Gfa5Q8WoolKJBeOKFzm-HzY"
+REDUCED_EMISSIONS_WORKSHEET_ID = 484980951   # the "reduced_emissions" tab
+SERVICE_ACCOUNT_FILE = Path(__file__).parent.parent / "service_account.json"
+
+@lru_cache(maxsize=1)
+def _fetch_reduced_emissions():
+    import gspread
+    if SERVICE_ACCOUNT_FILE.exists():
+        gc = gspread.service_account(filename=SERVICE_ACCOUNT_FILE)
+    else:
+        gc = gspread.service_account()   # falls back to ~/.config/gspread/service_account.json
+    ws = gc.open_by_key(REDUCED_EMISSIONS_SHEET_KEY)\
+           .get_worksheet_by_id(REDUCED_EMISSIONS_WORKSHEET_ID)
+    # UNFORMATTED so numbers come back at full precision, not as displayed
+    rows = ws.get_all_values(value_render_option="UNFORMATTED_VALUE")
+    df = pd.DataFrame(rows[1:], columns=rows[0])
+    return df.replace("", np.nan)
+
+def read_reduced_emissions(refresh=False):
+    """
+    Reduced emissions table (one row per solution), read from the Google Sheet.
+    Fetched once per session and cached; refresh=True re-reads the sheet.
+    """
+    if refresh:
+        _fetch_reduced_emissions.cache_clear()
+    return _fetch_reduced_emissions().copy()
 
 ## Read in standard GWP calculations- will need to update when F gases come in
 gwp_df = pd.read_excel(_DATA_DIR/ "emissions/solutions/GWP_conversions.xlsx",header = 1)
@@ -15,6 +46,8 @@ GWP20={}
 GWP20["CH4"]=gwp_df[gwp_df.iloc[:,0]=="CH4"]["GWP20 (CO2-eq)"].values[0]
 GWP20["N2O"]=gwp_df[gwp_df.iloc[:,0]=="N2O"]["GWP20 (CO2-eq)"].values[0]
 GWP20["CO2"]=1.
+
+TIMEPOINTS = np.arange(1750, 2102)   # matches get_input / drawdown_model
 
 def step_function(timepoints, t_start,L):
     """
@@ -96,19 +129,27 @@ def S_curve(timepoints, t_start, L, k=0.5, years_to_half_adoption=None):
     scaled = (raw - offset) / scale * L
 
     return np.where(timepoints < t_start, 0.0, np.clip(scaled, 0.0, L))
-
-def linear_ramp(timepoints, t_start, L):
+    
+def linear_ramp(timepoints, t_start, L, t_end=None):
     """
     Linear ramp-up for technology adoption.
 
     Parameters:
         timepoints:   Array of year timepoints.
         t_start:      Year adoption begins (curve is 0 before this).
-        L:            Saturation level (maximum adoption)
+        L:            Saturation level (maximum adoption).
+        t_end:        Year saturation is reached (curve stays at L after this).
+                      Defaults to the last timepoint.
     """
-    t_end =timepoints[-1]
+    timepoints = np.asarray(timepoints, dtype=float)
+    if t_end is None:
+        t_end = timepoints[-1]
+    if t_end <= t_start:
+        raise ValueError("t_end must be after t_start")
+
     slope = L / (t_end - t_start)
-    return np.where(timepoints < t_start, 0.0, slope * (timepoints - t_start))
+    return np.clip(slope * (timepoints - t_start), 0.0, L)
+
 
 def get_input(solution,\
               adoption_curve,\
@@ -121,17 +162,41 @@ def get_input(solution,\
     fair_end_time = 2101
     timepoints = np.arange(fair_start_time,fair_end_time+1,1)          
     #ALL OF THESE ARE IN CO2-eq-20/adoption unit/yr
-    emissions_df=pd.read_csv(_DATA_DIR/ "emissions/solutions/reduced_emissions.csv")
+    #emissions_df=pd.read_csv(_DATA_DIR/ "emissions/solutions/reduced_emissions.csv")
+    ##### NEW 9/15: FIX
+    emissions_df=read_reduced_emissions()
+    # Replaces all commas across all columns with an empty string
+    emissions_df = emissions_df.replace(',', '', regex=True)
+    ### END NEW 9/15
+    
     # if (len(np.where([x.find(solution)>=0 for x in emissions_df["solution name"]])[0]) and subcategory is None):
     #     solution += " Global weighted average"
-    if solution not in emissions_df["solution name"].values:
-        raise TypeError("Solution not found")
+    # Matched after normalizing (lowercase, '&'->'and', strip punctuation) rather
+    # than exact string equality, since reduced_emissions.csv and
+    # drawdown_adoption_ranges.xlsx don't always agree on spelling for the same
+    # solution (e.g. "Paper & Cardboard" vs "Paper and Cardboard") -- see
+    # achievable_adoption, which does the same normalization on the other table.
+    key=_normalize_solution_name(solution)
+    normalized_names=emissions_df["solution name"].map(_normalize_solution_name)
+    exact=emissions_df[normalized_names == key]
+    if len(exact) == 1:
+        subset=exact
     else:
-        subset=emissions_df[emissions_df["solution name"] == solution]
+        prefix=emissions_df[[key.startswith(n) or n.startswith(key) for n in normalized_names]]
+        if len(prefix) == 1:
+            subset=prefix
+        elif len(prefix) > 1:
+            raise ValueError(f"'{solution}' matches multiple rows in reduced_emissions.csv: "
+                             f"{list(prefix['solution name'])}")
+        else:
+            raise TypeError(f"Solution not found: '{solution}' (checked exact and prefix match "
+                            "after normalizing '&'/'and' and punctuation)")
     perturbation_dict={}
     for specie in ["CH4","N2O","CO2"]:
-        
-        emissions=subset[specie].values[0]
+        ## NEW 9/15: Changed to float###
+        #emissions=subset[specie].values[0]
+        emissions=float(subset[specie].values[0])
+        ### END NEW 9/15
         if emissions != 0:
             gwp20=GWP20[specie]
             if specie == "CO2":
@@ -156,14 +221,15 @@ def get_input(solution,\
 
 def drawdown_model(baseline_scenario, perturbation_dicts, df_configs=None,
                    start=1750, end=2101, lite=False, \
-                   n_lite=10, emissions_year = 2024, random_seed=42, run_model=True):
+                   n_lite=10, emissions_year = 2024, random_seed=42, run_model=True,\
+                  action="add", CH4_lifetime_effects=True):
     """
     Build and run a FaIR model instance
 
     Parameters:
         baseline_scenario: what emissions would do without action
         perturbation_dicts: dictionary of form d[scenario][specie]=timeseries of avoided emissions
-        df_configs: parameters for the box model parameters 
+        df_configs: parameters for the box model parameters
         (ocean heat uptake, feedbacks, etc.)
         defaults to '../data/fair-parameters/calibrated_constrained_parameters_1.4.1.csv'
         start: start date (keep at 1750 for spinup)
@@ -171,6 +237,10 @@ def drawdown_model(baseline_scenario, perturbation_dicts, df_configs=None,
         lite: run a configuration in reduced parameter space (saves memory)
         n_lite: the number of parameter values to use in lite mode
         emissions_year: when using a constant baseline, the year in which to freeze emissions
+        CH4_lifetime_effects: if False, zeroes ch4_lifetime_chemical_sensitivity for
+            NOx/CO/VOC, i.e. turns off the chemistry channel through which those species'
+            emissions alter methane's atmospheric lifetime (see replacement_model, which
+            this mirrors). Default True keeps FaIR's normal behavior.
     """
     
     all_scenarios = [baseline_scenario] + list(perturbation_dicts.keys())
@@ -218,8 +288,8 @@ def drawdown_model(baseline_scenario, perturbation_dicts, df_configs=None,
         #step = step_function(timepoints, emissions_year)[:, np.newaxis, np.newaxis]
         step = np.where(timepoints<emissions_year,0.0,1.0)[:, np.newaxis, np.newaxis]
         baseline_emissions = (                                                        
-          high_emissions.values * (1 - step) +       # ramps to 0 at 2024
-          emissions_const.values[np.newaxis, :, :] * step  # ramps on at 2024        
+          high_emissions.values * (1 - step) +       # ramps to 0 at emissions_year
+          emissions_const.values[np.newaxis, :, :] * step  # ramps on at emissions_year       
         )
         
                                                                                                                                                     
@@ -248,15 +318,23 @@ def drawdown_model(baseline_scenario, perturbation_dicts, df_configs=None,
     f.override_defaults(
         _DATA_DIR / 'fair-parameters/calibrated_constrained_parameters_1.4.1.csv'
     )
-   
+    if not CH4_lifetime_effects:
+        for specie in ["NOx","CO","VOC"]:
+            f.species_configs["ch4_lifetime_chemical_sensitivity"]\
+                .loc[dict(specie=specie)] =0.
+
     for s in all_scenarios:
         f.emissions.loc[dict(scenario=s)] = baseline_emissions
         f.forcing.loc[dict(scenario=s)] = baseline_forcing
 
     for s, perturbation in perturbation_dicts.items():
         for specie, delta in perturbation.items():
-            f.emissions.loc[dict(scenario=s, specie=specie)] += delta[:, np.newaxis]
-
+            if action=="add":
+                f.emissions.loc[dict(scenario=s, specie=specie)] += delta[:, np.newaxis]
+            elif action == "replace":
+                f.emissions.loc[dict(scenario=s, specie=specie)] = delta[:, np.newaxis]
+            else:
+                raise TypeError("action must be add or replace")
     initialise(f.concentration, f.species_configs["baseline_concentration"])
     initialise(f.forcing, 0)
     initialise(f.temperature, 0)
@@ -269,8 +347,9 @@ def drawdown_model(baseline_scenario, perturbation_dicts, df_configs=None,
     return f
 
 
-def plot_T_diff(f,end_time=2100,scenarios=None):
-    baseline_scenario=f.baseline_scenario
+def plot_T_diff(f,end_time=2100,scenarios=None,baseline_scenario=None):
+    if baseline_scenario is None:
+        baseline_scenario=f.baseline_scenario
     baseline_T=f.temperature.sel(layer=0,\
                     scenario=baseline_scenario,\
                    timebounds=slice(2020,end_time))
@@ -293,7 +372,7 @@ def plot_T_diff(f,end_time=2100,scenarios=None):
     plt.xlabel("Year")
     plt.ylabel("Warming avoided (°C)")
 
-def shadeplot(da,dim="config",timedim=None,hdi_prob=.9,color=None,alpha=.5):
+def shadeplot(da,dim="config",timedim=None,hdi_prob=.9,**plt_kwargs):
     """
     Plot the shaded interval
     """
@@ -309,7 +388,7 @@ def shadeplot(da,dim="config",timedim=None,hdi_prob=.9,color=None,alpha=.5):
     lowq=quantiles.sel(quantile=low)
     highq=quantiles.sel(quantile=high)
     xax=getattr(lowq,timedim).values
-    ax=plt.fill_between(xax,lowq.values,highq.values,alpha=alpha,color=color)
+    ax=plt.fill_between(xax,lowq.values,highq.values,**plt_kwargs)
     return ax
         
 
@@ -462,21 +541,49 @@ def get_CMIP7_emissions(scenario,species):
     del edf
     return da
 
+def _normalize_solution_name(name):
+    """
+    Squash a solution name down for fuzzy matching across the different
+    spreadsheets this module reads: lowercase, expand '&' to 'and' (the
+    Explorer website and reduced_emissions.csv don't agree on which to use,
+    e.g. "Paper & Cardboard" vs "Paper and Cardboard", "Grasslands &
+    Savannas" vs "Grasslands and Savannas"), then strip punctuation.
+    """
+    return re.sub(r"[^a-z0-9]", "", str(name).lower().replace("&", " and "))
+
 def achievable_adoption(solution,bound):
     """
     Get low or high range of achievable adoption (scraped from Explorer website)
 
     Parameters:
-        solution: must be same as on website
+        solution: doesn't need to match the website's spelling exactly --
+            matched after normalizing both sides (see _normalize_solution_name),
+            with a prefix-match fallback for names like "Improve Nonmotorized
+            Transportation TOTAL Nonmotorized travel" that only partially
+            overlap the website's "Improve Nonmotorized Transportation".
         bound: one of "low" or "high" (case-insensitive)
     """
     if bound.lower() == "low":
         col="Low Achievable Range"
     else:
         col="High Achievable Range"
-   
+
     adoption_df=pd.read_excel(_DATA_DIR / "explorer-website/drawdown_adoption_ranges.xlsx")
-    return float(adoption_df[adoption_df["Solution"]==solution][col].values[0])
+    key=_normalize_solution_name(solution)
+    normalized=adoption_df["Solution"].map(_normalize_solution_name)
+
+    exact=adoption_df[normalized == key]
+    if len(exact) == 1:
+        return float(exact[col].values[0])
+
+    prefix=adoption_df[[key.startswith(n) or n.startswith(key) for n in normalized]]
+    if len(prefix) == 1:
+        return float(prefix[col].values[0])
+    if len(prefix) > 1:
+        raise ValueError(f"'{solution}' matches multiple rows in drawdown_adoption_ranges.xlsx: "
+                         f"{list(prefix['Solution'])}")
+    raise ValueError(f"'{solution}' not found in drawdown_adoption_ranges.xlsx "
+                     "(checked exact and prefix match after normalizing '&'/'and' and punctuation)")
 
 def scenarios_to_emissions(baseline_scenario,scenariodict):
     """
