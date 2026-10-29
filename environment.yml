@@ -8,6 +8,7 @@ dependencies:
   - pandas
   - matplotlib
   - scipy
+  - seaborn
   - xarray
   - jupyterlab
   - ipywidgets
