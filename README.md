@@ -33,4 +33,12 @@ Reduced emissions per solution are read live from the "Drawdown Climate Reduced 
 
 **DO NOT SHARE THE SERVICE ACCOUNT OUTSIDE PD**
 
+### Without the service account
+Trusted collaborators outside PD can run the code from a CSV snapshot of the sheet instead.
+
+* **To make the snapshot** (needs the service account): run `from drawdown import explorer; explorer.export_reduced_emissions_csv()`. This writes the current sheet to `data/emissions/solutions/Drawdown Climate Reduced Emissions Numbers - reduced_emissions.csv`, which you can send directly.
+* **To use it:** put the CSV you were sent at that same path. The code uses it automatically when no service account is found, with a warning that it may be out of date.
+
+The CSV is gitignored. Don't commit it.
+
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/netzeroasap/DrawdownImpacts/HEAD?labpath=notebooks/Examples.ipynb)
