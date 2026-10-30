@@ -12,18 +12,25 @@ from functools import lru_cache
 _DATA_DIR = Path(__file__).parent.parent / "data"
 
 ## Reduced emissions per adoption unit live in the "Drawdown Climate Reduced
-## Emissions Numbers" Google Sheet, read via the PD service account (see README)
+## Emissions Numbers" Google Sheet, read via the PD service account (see README).
+## Without the service account, a CSV export of the sheet at REDUCED_EMISSIONS_CSV
+## is used instead (made with export_reduced_emissions_csv, shared directly).
 REDUCED_EMISSIONS_SHEET_KEY = "10TxDO4DeNPRRTTaGix13Gfa5Q8WoolKJBeOKFzm-HzY"
 REDUCED_EMISSIONS_WORKSHEET_ID = 484980951   # the "reduced_emissions" tab
 SERVICE_ACCOUNT_FILE = Path(__file__).parent.parent / "service_account.json"
+REDUCED_EMISSIONS_CSV = _DATA_DIR / "emissions/solutions/Drawdown Climate Reduced Emissions Numbers - reduced_emissions.csv"
 
-@lru_cache(maxsize=1)
-def _fetch_reduced_emissions():
+def _service_account_file():
+    """Path to the PD service account key, or None if this machine doesn't have it."""
     import gspread
-    if SERVICE_ACCOUNT_FILE.exists():
-        gc = gspread.service_account(filename=SERVICE_ACCOUNT_FILE)
-    else:
-        gc = gspread.service_account()   # falls back to ~/.config/gspread/service_account.json
+    for f in [SERVICE_ACCOUNT_FILE, Path(gspread.auth.DEFAULT_SERVICE_ACCOUNT_FILENAME)]:
+        if f.exists():
+            return f
+    return None
+
+def _read_reduced_emissions_sheet(service_account_file):
+    import gspread
+    gc = gspread.service_account(filename=service_account_file)
     ws = gc.open_by_key(REDUCED_EMISSIONS_SHEET_KEY)\
            .get_worksheet_by_id(REDUCED_EMISSIONS_WORKSHEET_ID)
     # UNFORMATTED so numbers come back at full precision, not as displayed
@@ -31,14 +38,42 @@ def _fetch_reduced_emissions():
     df = pd.DataFrame(rows[1:], columns=rows[0])
     return df.replace("", np.nan)
 
+@lru_cache(maxsize=1)
+def _fetch_reduced_emissions():
+    service_account_file = _service_account_file()
+    if service_account_file is not None:
+        return _read_reduced_emissions_sheet(service_account_file)
+    if REDUCED_EMISSIONS_CSV.exists():
+        import warnings
+        warnings.warn(f"No service account found; using the local snapshot {REDUCED_EMISSIONS_CSV.name}, "
+                      "which may be out of date with the Google Sheet.")
+        return pd.read_csv(REDUCED_EMISSIONS_CSV)
+    raise FileNotFoundError(
+        "Reduced emissions data not found. Either put the PD service_account.json in "
+        f"{SERVICE_ACCOUNT_FILE.parent} (see README), or put the CSV you were sent at "
+        f"{REDUCED_EMISSIONS_CSV}")
+
 def read_reduced_emissions(refresh=False):
     """
-    Reduced emissions table (one row per solution), read from the Google Sheet.
-    Fetched once per session and cached; refresh=True re-reads the sheet.
+    Reduced emissions table (one row per solution), read from the Google Sheet
+    if the service account is available, otherwise from REDUCED_EMISSIONS_CSV.
+    Fetched once per session and cached; refresh=True re-reads it.
     """
     if refresh:
         _fetch_reduced_emissions.cache_clear()
     return _fetch_reduced_emissions().copy()
+
+def export_reduced_emissions_csv(path=REDUCED_EMISSIONS_CSV):
+    """
+    Save the current Google Sheet (full precision) as a CSV that can be sent
+    to people without the service account. Requires the service account.
+    Returns the path written.
+    """
+    service_account_file = _service_account_file()
+    if service_account_file is None:
+        raise FileNotFoundError("export_reduced_emissions_csv needs the PD service account (see README)")
+    _read_reduced_emissions_sheet(service_account_file).to_csv(path, index=False)
+    return Path(path)
 
 ## Read in standard GWP calculations- will need to update when F gases come in
 gwp_df = pd.read_excel(_DATA_DIR/ "emissions/solutions/GWP_conversions.xlsx",header = 1)

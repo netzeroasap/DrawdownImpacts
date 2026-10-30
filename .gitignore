@@ -9,6 +9,9 @@ __pycache__/
 # Service account
 service_account.json
 
+# Reduced emissions snapshot -- shared directly with trusted people, never committed
+data/emissions/solutions/Drawdown Climate Reduced Emissions Numbers - reduced_emissions.csv
+
 # C extensions
 *.so
 
