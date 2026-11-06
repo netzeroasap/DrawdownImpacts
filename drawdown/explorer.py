@@ -637,4 +637,31 @@ def scenarios_to_emissions(baseline_scenario,scenariodict):
             for specie in pert_species.values:
                 perturbation_dicts[scenario][specie]=scen_em.sel(specie=specie).values
     return perturbation_dicts
-           
+
+
+def stack(*dicts):
+    """Sum species-wise across perturbation dicts {specie: array}."""
+    out = {}
+    for d in dicts:
+        for sp, ts in d.items():
+            out[sp] = out.get(sp, 0.0) + ts
+    return out
+
+def plot_temp(f,
+              scenario=None,
+              timebounds=(2020,2100),
+             running_mean=1,
+             **kwargs):
+    if scenario is None:
+        scenario=f.scenarios
+    T=f.temperature.sel(scenario=scenario,
+                        timebounds=slice(*timebounds),
+                        layer=0).median(dim="config").rolling(timebounds=running_mean).mean(dim="timebounds")
+    
+    if type(scenario)==type([]):
+        T.plot(hue='scenario',**kwargs)
+    else:
+        T.plot(**kwargs)
+    plt.title("Temperature change relative to 1850-1900")
+    plt.ylabel("°C")
+    plt.xlabel("Year")
