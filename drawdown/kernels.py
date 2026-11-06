@@ -86,7 +86,7 @@ GWP100 = {"CH4": 27.0, "N2O": 273.0}
 
 def exp_kernel(n, tau):
     """
-    Normalised exponential lag kernel (sums to 1), e.g. the herd-adjustment
+    Normalized exponential lag kernel (sums to 1), e.g. the herd-adjustment
     lag between lower meat demand and lower livestock emissions (tau ~1-2 yr).
 
     h(j) proportional to exp(-j / tau), j = 0..n-1.
